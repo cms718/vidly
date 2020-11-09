@@ -25,7 +25,7 @@ export default function Pagination({
               <a
                 className="page-link"
                 onClick={() => onPageChange(page)}
-                href="#"
+                href="#a"
               >
                 {page}
               </a>

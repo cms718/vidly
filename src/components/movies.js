@@ -4,10 +4,11 @@ import { getGenres } from "../services/fakeGenreService";
 import Pagination from "../common/pagination";
 import { paginate } from "../utils/paginate";
 import ListGroup from "../common/listgroup";
+import SearchBar from "../components/searchBar";
 import MoviesTable from "./moviesTable";
 import _ from "lodash";
-
-export default function Movies() {
+import { Link } from "react-router-dom";
+export default function Movies({ history }) {
   const [movies, setMovies] = useState([]);
   const [pageSize, setPageSize] = useState(4);
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,6 +18,7 @@ export default function Movies() {
     category: "title",
     order: "asc",
   });
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     setMovies(getMovies());
@@ -42,16 +44,23 @@ export default function Movies() {
   const handleGenreSelect = (genre) => {
     setSelectedGenre(genre);
     setCurrentPage(1);
+    setSearchQuery("");
   };
 
   const handleSort = (sortColumn) => {
     setSortColumn(sortColumn);
   };
 
+  const handleSearch = (input) => {
+    setSearchQuery(input);
+    setSelectedGenre();
+  };
   const getPageData = () => {
     const filteredMovies = selectedGenre
       ? movies.filter((movie) => movie.genre._id === selectedGenre._id)
-      : movies;
+      : movies.filter((movie) =>
+          movie.title.toLowerCase().startsWith(searchQuery.toLowerCase())
+        );
 
     const sorted = _.orderBy(
       filteredMovies,
@@ -75,10 +84,22 @@ export default function Movies() {
         />
       </div>
       <div className="col">
+        <Link
+          to="/movies/new"
+          className="btn btn-primary"
+          style={{ margin: 10 }}
+        >
+          New Movie
+        </Link>
         {totalCount === 0 && <h2> There are no movies in the database.</h2>}
         {totalCount > 0 && (
           <h2> Showing {totalCount} movies in the database.</h2>
         )}
+        <SearchBar
+          placeholder="Search..."
+          onSearch={handleSearch}
+          value={searchQuery}
+        />
         {totalCount > 0 && (
           <MoviesTable
             newMovies={newMovies}
