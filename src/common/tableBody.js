@@ -1,6 +1,15 @@
 import React from "react";
 import _ from "lodash";
-export default function TableBody({ data, columns }) {
+import auth from "../services/authService";
+
+const user = auth.getCurrentUser();
+
+export default function TableBody({ data, columns: allColumns }) {
+  const columns =
+    user && user.isAdmin
+      ? allColumns
+      : allColumns.filter((column) => column.key !== "delete");
+
   const renderCell = (item, column) => {
     if (column.content) {
       return column.content(item);

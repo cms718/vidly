@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { getMovies } from "../services/fakeMovieService";
-import { getGenres } from "../services/fakeGenreService";
+import { getMovies, deleteMovie } from "../services/movieService";
+import { getGenres } from "../services/genreService";
 import Pagination from "../common/pagination";
 import { paginate } from "../utils/paginate";
 import ListGroup from "../common/listgroup";
@@ -8,7 +8,8 @@ import SearchBar from "../components/searchBar";
 import MoviesTable from "./moviesTable";
 import _ from "lodash";
 import { Link } from "react-router-dom";
-export default function Movies({ history }) {
+import { toast } from "react-toastify";
+export default function Movies(props) {
   const [movies, setMovies] = useState([]);
   const [pageSize, setPageSize] = useState(4);
   const [currentPage, setCurrentPage] = useState(1);
@@ -21,13 +22,31 @@ export default function Movies({ history }) {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    setMovies(getMovies());
-    setGenres(getGenres());
+    const retrieveMovies = async () => {
+      const { data: movies } = await getMovies();
+      setMovies(movies);
+    };
+    const retrieveGenres = async () => {
+      const { data: genres } = await getGenres();
+      setGenres(genres);
+    };
+    retrieveMovies();
+    retrieveGenres();
   }, []);
+  const { user } = props;
 
-  const handleDelete = (id) => {
-    const newMovies = movies.filter((movie) => movie._id !== id);
+  const handleDelete = async (movie) => {
+    const originalMovies = [...movies];
+    const newMovies = movies.filter((m) => m._id !== movie._id);
     setMovies(newMovies);
+    try {
+      await deleteMovie(movie._id);
+    } catch (ex) {
+      if (ex.response && ex.response.status === 404) {
+        toast.error("This movie has already been deleted");
+      }
+      setMovies(originalMovies);
+    }
   };
 
   const handleLike = (movie) => {
@@ -68,7 +87,6 @@ export default function Movies({ history }) {
       [sortColumn.order]
     );
     const newMovies = paginate(sorted, currentPage, pageSize);
-
     return { totalCount: filteredMovies.length, data: newMovies };
   };
 
@@ -84,13 +102,15 @@ export default function Movies({ history }) {
         />
       </div>
       <div className="col">
-        <Link
-          to="/movies/new"
-          className="btn btn-primary"
-          style={{ margin: 10 }}
-        >
-          New Movie
-        </Link>
+        {user && (
+          <Link
+            to="/movies/new"
+            className="btn btn-primary"
+            style={{ margin: 10 }}
+          >
+            New Movie
+          </Link>
+        )}
         {totalCount === 0 && <h2> There are no movies in the database.</h2>}
         {totalCount > 0 && (
           <h2> Showing {totalCount} movies in the database.</h2>
@@ -102,6 +122,7 @@ export default function Movies({ history }) {
         />
         {totalCount > 0 && (
           <MoviesTable
+            user={user}
             newMovies={newMovies}
             onLike={handleLike}
             onDelete={handleDelete}

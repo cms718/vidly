@@ -4,7 +4,7 @@ import Like from "../common/like";
 import Table from "../common/table";
 
 export default function MoviesTable(props) {
-  const { newMovies, onDelete, onLike, onSort, sortColumn } = props;
+  const { newMovies, onDelete, onLike, onSort, sortColumn, user } = props;
   const columns = [
     {
       category: "title",
@@ -26,7 +26,7 @@ export default function MoviesTable(props) {
       key: "delete",
       content: (movie) => (
         <button
-          onClick={() => onDelete(movie._id)}
+          onClick={() => onDelete(movie)}
           className="btn btn-danger btn-sm"
         >
           Delete

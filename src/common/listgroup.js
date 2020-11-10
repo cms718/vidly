@@ -11,7 +11,7 @@ export default function ListGroup({
     <div>
       <ul className="list-group" style={{ cursor: "pointer" }}>
         <li
-          key={"all-genres"}
+          key=""
           className={
             !selectedItem ? "list-group-item active" : "list-group-item"
           }

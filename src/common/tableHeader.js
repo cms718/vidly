@@ -1,6 +1,16 @@
 import React from "react";
+import auth from "../services/authService";
+const user = auth.getCurrentUser();
 
-export default function TableHeader({ onSort, columns, sortColumn }) {
+export default function TableHeader({
+  onSort,
+  columns: allColumns,
+  sortColumn,
+}) {
+  const columns =
+    user && user.isAdmin
+      ? allColumns
+      : allColumns.filter((column) => column.key !== "delete");
   const raiseSort = (category) => {
     const copySortColumn = { ...sortColumn };
     if (copySortColumn.category === category)
